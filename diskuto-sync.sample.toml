@@ -1,0 +1,8 @@
+servers = [
+    {name = "Localhost", url="http://localhost:8080", dest=true},
+    {name="Blog", url="https://blog.nfnitloop.com"}
+]
+
+users = [
+    {name="Cody", id="42P3FTZoCmN8DRmLSu89y419XfYfHP9Py7a9vNLfD72F"},
+]
