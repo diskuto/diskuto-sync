@@ -8,7 +8,10 @@
     "tasks": {
         "sync": "./src/main.ts sync",
         "test": "deno task check",
-        "check": "deno check src/main.ts src/lib.ts"
+        "check": "deno task check:types && deno task check:publish",
+        "check:types": "deno check src/main.ts src/lib.ts",
+        "check:publish": "deno publish --dry-run --allow-dirty"
+        
     },
     "fmt": {
         "indentWidth": 4
