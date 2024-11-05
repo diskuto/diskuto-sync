@@ -10,7 +10,12 @@
  * But you can alternatively import the `./lib` module to use
  * as a library for yourself.
  * 
+ * TODO: Diskuto is the new name for the *protocol* part of [FeoBlog].
+ * You may see mentions of FeoBlog until [the rename] is complete.
+ * 
  * [Diskuto]: https://example.com/TODO
+ * [FeoBlog]: https://github.com/nfnitloop/feoblog/
+ * [the rename]: https://github.com/NfNitLoop/feoblog/issues/127
  * 
  * @module
  */
@@ -47,10 +52,22 @@ type SyncArgs = {
 async function cmdSync({config: configPath}: SyncArgs) {
     const config = await loadConfig(configPath)
     const logger = new ConsoleLogger()
-    const sync = new Sync({...config, logger})
-    for (const user of config.users) {
+    const sync = new Sync({
+        logger,
+        servers: Object.entries(config.servers).map(([name, info]) => ({...info, name})),
+    })
+
+    // Sync users first:
+    for (const [_name, user] of Object.entries(config.users)) {
         const uid = UserID.fromString(user.id)
         await sync.syncUser(uid)
+    }
+
+    // Sync user feeds last:
+    for (const [_name, user] of Object.entries(config.users)) {
+        if (!user.syncFeed) { continue }
+        const uid = UserID.fromString(user.id)
+        await sync.syncUserFeed(uid)
     }
 }
 

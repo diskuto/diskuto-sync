@@ -7,7 +7,7 @@
  * @module
  */
 
-import { Client, Signature, type UserID } from "@nfnitloop/feoblog-client"
+import { Client, Signature, UserID, type ProfileResult } from "@nfnitloop/feoblog-client"
 import { lazy } from "@nfnitloop/better-iterators"
 
 
@@ -15,6 +15,7 @@ import { lazy } from "@nfnitloop/better-iterators"
  * Used to sync items between Diskuto instances.
  */
 export class Sync {
+
     #logger: Logger;
 
     constructor(private config: SyncConfig) {
@@ -29,6 +30,11 @@ export class Sync {
         this.#logger = config.logger
     }
 
+    /**
+     * Sync a user's `Item`s between servers.
+     * 
+     * TODO: Options for limiting item count/type/date-range/etc.
+     */
     async syncUser(uid: UserID) {
         const opName = "synchronizing user " + uid
         this.#logger.operation("starting", opName)
@@ -64,7 +70,7 @@ export class Sync {
                 break
             }
 
-            const tip = Math.min(...timestamps)
+            const tip = Math.max(...timestamps)
             const {matches, others} = lazy(tips)
                 .partition(t => !t.nextValue.done && Number(t.nextValue.value.timestampMsUtc) == tip)
 
@@ -77,7 +83,7 @@ export class Sync {
 
             // Matching servers all alrady have the content. Copy it to the other servers, 
             // IFF they're marked as a destination.
-            await this.#copyItems({
+            await this.#copyItem({
                 userId: uid,
                 signature,
                 sources: matches.map(s => s.server),
@@ -93,7 +99,7 @@ export class Sync {
         this.#logger.operation("done", opName)
     }
 
-    async #copyItems({sources, destinations, userId, signature}: CopyItemsArgs): Promise<void> {
+    async #copyItem({sources, destinations, userId, signature}: CopyItemsArgs): Promise<void> {
         // Only sync to destinations that have been marked as such.
         destinations = destinations.filter(d => d.dest)
         if (destinations.length == 0) {
@@ -123,6 +129,77 @@ export class Sync {
             await destClient.putItem(userId, signature, item)
             this.#logger.copyItem({...logInfo, event: "done"})
         }
+
+        // TODO: Copy files.
+    }
+
+    /**
+     * Sync a users's "feed": all the users they follow.
+     */
+    async syncUserFeed(uid: UserID) {
+        const thisOp = `Syncing user feed ${uid}`
+        this.#logger.operation("starting", thisOp)
+        const response = await this.#syncLatestProfile(uid)
+        if (!response) {
+            const msg = `Couldn't find user profile: ${uid}`
+            this.#logger.operation("done", thisOp, )
+            throw new Error(msg)
+        }
+
+        const itemType = response.item.itemType.case
+        if (itemType != "profile") {
+            const msg = `Got wrong item type: ${itemType}`
+            this.#logger.operation("done", thisOp, msg)
+            throw new Error(msg)
+        }
+
+        const profile = response.item.itemType.value
+        for (const follow of profile.follows) {
+            const followId = UserID.fromBytes(follow.user!.bytes)
+            await this.syncUser(followId)
+        }
+
+        this.#logger.operation("done", thisOp)
+    }
+
+    /**
+     * For all the servers we know, fetch the latest profile for this user. 
+     * Also, sync it to any servers that don't have the latest.
+     */
+    async #syncLatestProfile(uid: UserID): Promise<null|ProfileResult> {
+        const profiles = await lazy(this.config.servers).toAsync()
+            .map(async s => {
+                const client = new Client({base_url: s.url})
+                const profile = await client.getProfile(uid)
+                return {server: s, client, profile}
+            })
+            .toArray()
+        
+
+        const timestamps = profiles
+            .map(p => p.profile)
+            .filter(p => p != null)
+            .map(p => Number(p.item.timestampMsUtc))
+        if (timestamps.length == 0) {
+            return null
+        }
+
+        const latest = Math.max(...timestamps)
+
+        const {matches, others} = lazy(profiles)
+            .partition(p => p.profile != null && (Number(p.profile.item.timestampMsUtc) == latest))
+
+        const profile = matches[0].profile!
+
+        // Technically we've already loaded the item but I'm reusing this:
+        await this.#copyItem({
+            sources: matches.map(m => m.server),
+            destinations: others.map(m => m.server),
+            userId: uid,
+            signature: profile.signature
+        })
+
+        return profile
     }
 
 
@@ -196,7 +273,7 @@ export type Logger = {
     copyFile(args: LogCopyFile): void
 
     /**  Called when starting/finishing a bulk operation. ex: "Syncing user posts" */
-    operation(event: LogType, name: string): void
+    operation(event: LogType, name: string, error?: string): void
 }
 
 export type LogType = "starting" | "done"
@@ -242,7 +319,11 @@ export class ConsoleLogger implements Logger {
         }
     }
 
-    operation(event: LogType, name: string) { 
-        console.log(event, name)
+    operation(event: LogType, name: string, error?: string) { 
+        if (error) {
+            console.error("error:", name, error)
+        } else {
+            console.log(event, name)
+        }
     }
 }

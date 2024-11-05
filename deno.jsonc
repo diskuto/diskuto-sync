@@ -6,7 +6,9 @@
         "./lib": "./src/lib.ts"
     },
     "tasks": {
-        "sync": "./src/main.ts sync"
+        "sync": "./src/main.ts sync",
+        "test": "deno task check",
+        "check": "deno check src/main.ts src/lib.ts"
     },
     "fmt": {
         "indentWidth": 4

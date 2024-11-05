@@ -1,8 +1,34 @@
-servers = [
-    {name = "Localhost", url="http://localhost:8080", dest=true},
-    {name="Blog", url="https://blog.nfnitloop.com"}
-]
+# server.<name> declares a server that you want to sync to/from.
+# You must declare at least two of these.
+[servers.localhost]
+# The base URL of the Diskuto API server:
+url = "http://localhost:8080"
+# This marks the server as a "destination", where updates can be written to.
+# You need at least one of these in your configuration file.
+dest = true
 
-users = [
-    {name="Cody", id="42P3FTZoCmN8DRmLSu89y419XfYfHP9Py7a9vNLfD72F"},
-]
+# An example read-only server:
+[servers.blog]
+url = "https://blog.nfnitloop.com"
+
+# users.<name> declare users whose content you want to sync between servers.
+[users.cody]
+id = "42P3FTZoCmN8DRmLSu89y419XfYfHP9Py7a9vNLfD72F"
+
+# Marks that we should also sync this user's feed.
+# (i.e.: all the users they follow)
+syncFeed = true
+
+# TODO:
+# Optional: How many items from each followed user should we sync, max?
+# After we have the $n most-recent updates from that user, we'll move on to the next.
+# Default: 50
+# A setting <= 0 means there should be no limit.
+# feedMaxCount = 50
+
+
+# TODO: Maybe allow a "homepage" sync, to sync everything discoverable on the
+# homepage of one server to another.
+# 
+# [homepage]
+# ...

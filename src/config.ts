@@ -12,11 +12,12 @@ export async function loadConfig(path: string): Promise<Config> {
     const obj = toml.parse(text)
     const config = Config.parse(obj)
 
-    if (config.servers.length < 2) {
+
+    if (Object.entries(config.servers).length < 2) {
         throw new Error(`Must have at least 2 servers listed, found ${config.servers.length}`)
     }
 
-    const dests = config.servers.filter(s => s.dest).length
+    const dests = Object.entries(config.servers).filter(([_k,v]) => v.dest).length
     if (dests == 0) {
         throw new Error(`Must have at least one destination server configured. (dest=true)`)
     }
@@ -26,7 +27,6 @@ export async function loadConfig(path: string): Promise<Config> {
 
 export type Server = z.infer<typeof Server>
 const Server = z.object({
-    name: z.string().min(1),
     url: z.string().url().startsWith("http") /* or https */,
     dest: z.boolean().optional().default(false)
 }).strict()
@@ -34,15 +34,14 @@ const Server = z.object({
 export type User = z.infer<typeof User>
 const User = z.object({
     id: z.string().min(1).describe("base58-encoded userID to sync"),
-    name: z.string().min(1).optional()
+    syncFeed: z.boolean().optional().default(false),
 }).strict()
-
 
 
 export type Config = z.infer<typeof Config>
 const Config = z.object({
-    servers: z.array(Server).min(2),
-    users: z.array(User).min(1),
+    servers: z.record(Server),
+    users: z.record(User),
     backfillFiles: z.boolean().optional().default(false),
     copyFiles: z.boolean().optional().default(true),
 }).strict()
