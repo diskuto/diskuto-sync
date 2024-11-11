@@ -35,9 +35,16 @@ export class Sync {
      * 
      * TODO: Options for limiting item count/type/date-range/etc.
      */
-    async syncUser(uid: UserID) {
+    async syncUser(uid: UserID, opts?: SyncUserOptions) {
         const opName = "synchronizing user " + uid
         this.#logger.operation("starting", opName)
+
+        const maxToSync = opts?.maxCount ?? 50
+        let alreadySyncd = 0
+
+        const moreToSync = () => {
+            return maxToSync <= 0 || alreadySyncd < maxToSync
+        }
 
         const peekers = this.config.servers.map(s => {
             const client = new Client({base_url: s.url})
@@ -47,8 +54,7 @@ export class Sync {
                 peeker: lazy(client.getUserItems(uid)).peekable()
             }
         })
-        while (true) {
-            // TODO: Check a time/count limit for the sync instead of always syncing everything.
+        while (moreToSync()) {
 
             const tips = await lazy(peekers)
                 .toAsync()
@@ -94,6 +100,8 @@ export class Sync {
             for (const match of matches) {
                 await match.peeker.next()
             }
+
+            alreadySyncd += 1
         }
 
         this.#logger.operation("done", opName)
@@ -136,7 +144,7 @@ export class Sync {
     /**
      * Sync a users's "feed": all the users they follow.
      */
-    async syncUserFeed(uid: UserID) {
+    async syncUserFeed(uid: UserID, opts?: SyncUserFeedOptions) {
         const thisOp = `Syncing user feed ${uid}`
         this.#logger.operation("starting", thisOp)
         const response = await this.#syncLatestProfile(uid)
@@ -156,7 +164,7 @@ export class Sync {
         const profile = response.item.itemType.value
         for (const follow of profile.follows) {
             const followId = UserID.fromBytes(follow.user!.bytes)
-            await this.syncUser(followId)
+            await this.syncUser(followId, opts)
         }
 
         this.#logger.operation("done", thisOp)
@@ -201,9 +209,26 @@ export class Sync {
 
         return profile
     }
-
-
 }
+
+/**
+ * Options for {@link Sync#syncUserFeed}
+ */
+export type SyncUserFeedOptions = {
+    /**
+     * Maximum number of items to sync from each user.
+     * 
+     * If unspecified, and no other limits are specified, defaults to 50.
+     * 
+     * Specifying a number <= 0 means there is no limit.
+     */
+    maxCount?: number
+}
+
+/**
+ * Options for {@link Sync#syncUser}
+ */
+export type SyncUserOptions = SyncUserFeedOptions
 
 function choose<T>(items: T[]): T {
     // TODO: choose a random value from the list.

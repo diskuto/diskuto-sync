@@ -22,8 +22,9 @@
 
 import { Command, HelpCommand } from "@cliffy/command"
 import { loadConfig } from "./config.ts";
-import { ConsoleLogger, Sync } from "./lib.ts";
+import { ConsoleLogger, Sync, type LogCopyItem } from "./lib.ts";
 import { UserID } from "@nfnitloop/feoblog-client";
+import { Spinner } from "@std/cli/unstable-spinner"
 
 export async function main(args: string[]) {
     const cmd = new Command()
@@ -51,7 +52,7 @@ type SyncArgs = {
 
 async function cmdSync({config: configPath}: SyncArgs) {
     const config = await loadConfig(configPath)
-    const logger = new ConsoleLogger()
+    const logger = new PrettyLogger()
     const sync = new Sync({
         logger,
         servers: Object.entries(config.servers).map(([name, info]) => ({...info, name})),
@@ -60,14 +61,48 @@ async function cmdSync({config: configPath}: SyncArgs) {
     // Sync users first:
     for (const [_name, user] of Object.entries(config.users)) {
         const uid = UserID.fromString(user.id)
-        await sync.syncUser(uid)
+        await sync.syncUser(uid, user)
     }
 
     // Sync user feeds last:
     for (const [_name, user] of Object.entries(config.users)) {
-        if (!user.syncFeed) { continue }
+        if (!user.feed?.sync) { continue }
         const uid = UserID.fromString(user.id)
-        await sync.syncUserFeed(uid)
+        await sync.syncUserFeed(uid, user.feed)
+    }
+}
+
+class PrettyLogger extends ConsoleLogger {
+
+    #spinner: Spinner|null = null
+
+    override copyItem(args: LogCopyItem): void {
+        const {event, dest, error, source, signature, userId} = args
+        const sourceName = source.name ?? source.url
+        const destName = dest.name ?? dest.url
+        const base = `${sourceName} → ${destName} ${userId} ${signature}`
+
+        if (event == "starting" && this.#spinner) {
+            console.error("Error: Spinner was left running when starting a new one.")
+            this.#spinner.stop()
+            this.#spinner = null
+        }
+
+        if (event == "starting") {
+            this.#spinner = new Spinner({message: base, color: "yellow"})
+            this.#spinner.start()
+            return
+        }
+
+        this.#spinner?.stop()
+        this.#spinner = null
+
+        const status = error ? "❌" : "✅"
+        console.log(`${status} ${base}`)
+        if (error) {
+            console.log("Error:", error)
+        }
+
     }
 }
 

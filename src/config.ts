@@ -31,10 +31,20 @@ const Server = z.object({
     dest: z.boolean().optional().default(false)
 }).strict()
 
+export type UserFeed = z.infer<typeof UserFeed>
+const UserFeed = z.object({
+    sync:  z.boolean().optional().default(false),
+
+    /** Default in app: 50 */
+    maxCount: z.number().int().optional(),
+    // TODO: maxAgeSeconds: z.number().optional(),
+}).strict()
+
 export type User = z.infer<typeof User>
 const User = z.object({
     id: z.string().min(1).describe("base58-encoded userID to sync"),
-    syncFeed: z.boolean().optional().default(false),
+    maxCount: z.number().int().optional(),
+    feed: UserFeed.optional(),
 }).strict()
 
 

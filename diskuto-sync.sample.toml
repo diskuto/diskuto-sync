@@ -17,14 +17,13 @@ id = "42P3FTZoCmN8DRmLSu89y419XfYfHP9Py7a9vNLfD72F"
 
 # Marks that we should also sync this user's feed.
 # (i.e.: all the users they follow)
-syncFeed = true
+feed.sync = true
 
-# TODO:
 # Optional: How many items from each followed user should we sync, max?
 # After we have the $n most-recent updates from that user, we'll move on to the next.
 # Default: 50
 # A setting <= 0 means there should be no limit.
-# feedMaxCount = 50
+# feed.maxCount = 50
 
 
 # TODO: Maybe allow a "homepage" sync, to sync everything discoverable on the
