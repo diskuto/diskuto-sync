@@ -7,7 +7,7 @@
  * @module
  */
 
-import { Client, Signature, UserID, type ProfileResult } from "@nfnitloop/feoblog-client"
+import { Client, Signature, UserID, type ProfileResult } from "@diskuto/client"
 import { lazy } from "@nfnitloop/better-iterators"
 
 
@@ -47,7 +47,7 @@ export class Sync {
         }
 
         const peekers = this.config.servers.map(s => {
-            const client = new Client({base_url: s.url})
+            const client = new Client({baseUrl: s.url})
             return {
                 server: s,
                 client,
@@ -116,7 +116,7 @@ export class Sync {
 
         // TODO: choose random source.
         const source = choose(sources)
-        const sourceClient = new Client({base_url: source.url})
+        const sourceClient = new Client({baseUrl: source.url})
         const item = await sourceClient.getItemBytes(userId, signature)
 
 
@@ -133,7 +133,7 @@ export class Sync {
                 this.#logger.copyItem({...logInfo, event: "done", error: "Could not read item from source"})
                 continue
             }
-            const destClient = new Client({base_url: dest.url})
+            const destClient = new Client({baseUrl: dest.url})
             await destClient.putItem(userId, signature, item)
             this.#logger.copyItem({...logInfo, event: "done"})
         }
@@ -177,7 +177,7 @@ export class Sync {
     async #syncLatestProfile(uid: UserID): Promise<null|ProfileResult> {
         const profiles = await lazy(this.config.servers).toAsync()
             .map(async s => {
-                const client = new Client({base_url: s.url})
+                const client = new Client({baseUrl: s.url})
                 const profile = await client.getProfile(uid)
                 return {server: s, client, profile}
             })

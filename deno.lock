@@ -4,23 +4,24 @@
     "jsr:@cliffy/command@1.0.0-rc.4": "1.0.0-rc.4",
     "jsr:@cliffy/flags@1.0.0-rc.4": "1.0.0-rc.4",
     "jsr:@cliffy/table@1.0.0-rc.4": "1.0.0-rc.4",
+    "jsr:@diskuto/client@~0.10.2": "0.10.2",
     "jsr:@nfnitloop/better-iterators@^1.5.0": "1.5.0",
-    "jsr:@nfnitloop/feoblog-client@0.8": "0.8.0",
+    "jsr:@noble/ed25519@^2.2.3": "2.2.3",
+    "jsr:@noble/hashes@^1.7.0": "1.7.1",
     "jsr:@std/assert@0.221": "0.221.0",
     "jsr:@std/assert@1": "1.0.7",
     "jsr:@std/cli@*": "1.0.6",
     "jsr:@std/cli@^1.0.6": "1.0.6",
     "jsr:@std/collections@^1.0.5": "1.0.9",
     "jsr:@std/console@0.221": "0.221.0",
-    "jsr:@std/encoding@^1.0.5": "1.0.5",
+    "jsr:@std/encoding@^1.0.5": "1.0.7",
     "jsr:@std/fmt@0.221": "0.221.0",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/text@0.221": "0.221.0",
     "jsr:@std/toml@^1.0.1": "1.0.1",
-    "npm:@bufbuild/protobuf@^2.2.1": "2.2.1",
+    "npm:@bufbuild/protobuf@^2.2.1": "2.2.3",
     "npm:bs58@6": "6.0.0",
     "npm:bs58check@4": "4.0.0",
-    "npm:tweetnacl@^1.0.3": "1.0.3",
     "npm:zod@^3.23.8": "3.23.8"
   },
   "jsr": {
@@ -46,18 +47,25 @@
         "jsr:@std/fmt"
       ]
     },
-    "@nfnitloop/better-iterators@1.5.0": {
-      "integrity": "cf528c1e1494cffb43e17c5752ecd8edd75492f51246440498c1f311d3fb65cb"
-    },
-    "@nfnitloop/feoblog-client@0.8.0": {
-      "integrity": "5fbc4c61cdbffed8c91b10ddfc9e35fb09eb12f5055053c0067deed7a4a51460",
+    "@diskuto/client@0.10.2": {
+      "integrity": "9942814f79c514016e6cf9a54ec6f0db651b4ed296f443f782333a227db39037",
       "dependencies": [
+        "jsr:@noble/ed25519",
+        "jsr:@noble/hashes",
         "jsr:@std/encoding",
         "npm:@bufbuild/protobuf",
         "npm:bs58",
-        "npm:bs58check",
-        "npm:tweetnacl"
+        "npm:bs58check"
       ]
+    },
+    "@nfnitloop/better-iterators@1.5.0": {
+      "integrity": "cf528c1e1494cffb43e17c5752ecd8edd75492f51246440498c1f311d3fb65cb"
+    },
+    "@noble/ed25519@2.2.3": {
+      "integrity": "77d984ee6b823c8b1a4a36aa56105d60e696a4e7b599b821712d1251481e2f9c"
+    },
+    "@noble/hashes@1.7.1": {
+      "integrity": "2c29f1dc07943155f5c7384be6f570a749c2afee95a0557cdae02b4fd5956134"
     },
     "@std/assert@0.221.0": {
       "integrity": "a5f1aa6e7909dbea271754fd4ab3f4e687aeff4873b4cef9a320af813adb489a"
@@ -80,8 +88,8 @@
         "jsr:@std/assert@0.221"
       ]
     },
-    "@std/encoding@1.0.5": {
-      "integrity": "ecf363d4fc25bd85bd915ff6733a7e79b67e0e7806334af15f4645c569fefc04"
+    "@std/encoding@1.0.7": {
+      "integrity": "f631247c1698fef289f2de9e2a33d571e46133b38d042905e3eac3715030a82d"
     },
     "@std/fmt@0.221.0": {
       "integrity": "379fed69bdd9731110f26b9085aeb740606b20428ce6af31ef6bd45ef8efa62a"
@@ -103,11 +111,11 @@
     }
   },
   "npm": {
-    "@bufbuild/protobuf@2.2.1": {
-      "integrity": "sha512-gdWzq7eX017a1kZCU/bP/sbk4e0GZ6idjsXOcMrQwODCb/rx985fHJJ8+hCu79KpuG7PfZh7bo3BBjPH37JuZw=="
+    "@bufbuild/protobuf@2.2.3": {
+      "integrity": "sha512-tFQoXHJdkEOSwj5tRIZSPNUuXK3RaR7T1nUrPgbYX1pUbvqqaaZAsfo+NXBPsz5rZMSKVFrgK1WL8Q/MSLvprg=="
     },
-    "@noble/hashes@1.5.0": {
-      "integrity": "sha512-1j6kQFb7QRru7eKN3ZDvRcP13rugwdxZqCjbiAVZfIJwgj2A65UmT4TgARXGlXgnRkORLTDTrO19ZErt7+QXgA=="
+    "@noble/hashes@1.7.0": {
+      "integrity": "sha512-HXydb0DgzTpDPwbVeDGCG1gIu7X6+AuU6Zl6av/E/KG8LMsvPntvq+w17CHRpKBmN6Ybdrt1eP3k4cj8DJa78w=="
     },
     "base-x@5.0.0": {
       "integrity": "sha512-sMW3VGSX1QWVFA6l8U62MLKz29rRfpTlYdCqLdpLo1/Yd4zZwSbnUaDfciIAowAqvq7YFnWq9hrhdg1KYgc1lQ=="
@@ -125,9 +133,6 @@
         "bs58"
       ]
     },
-    "tweetnacl@1.0.3": {
-      "integrity": "sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YMo4r2diNEA8FEmu32YOn9rhaiE5yw=="
-    },
     "zod@3.23.8": {
       "integrity": "sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g=="
     }
@@ -135,8 +140,8 @@
   "workspace": {
     "dependencies": [
       "jsr:@cliffy/command@1.0.0-rc.4",
+      "jsr:@diskuto/client@~0.10.2",
       "jsr:@nfnitloop/better-iterators@^1.5.0",
-      "jsr:@nfnitloop/feoblog-client@0.8",
       "jsr:@std/assert@1",
       "jsr:@std/cli@^1.0.6",
       "jsr:@std/toml@^1.0.1",

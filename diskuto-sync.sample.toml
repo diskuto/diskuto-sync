@@ -1,4 +1,4 @@
-# server.<name> declares a server that you want to sync to/from.
+# servers.<name> declares a server that you want to sync to/from.
 # You must declare at least two of these.
 [servers.localhost]
 # The base URL of the Diskuto API server:
@@ -24,10 +24,3 @@ feed.sync = true
 # Default: 50
 # A setting <= 0 means there should be no limit.
 # feed.maxCount = 50
-
-
-# TODO: Maybe allow a "homepage" sync, to sync everything discoverable on the
-# homepage of one server to another.
-# 
-# [homepage]
-# ...

@@ -10,12 +10,10 @@
  * But you can alternatively import the `./lib` module to use
  * as a library for yourself.
  * 
- * TODO: Diskuto is the new name for the *protocol* part of [FeoBlog].
- * You may see mentions of FeoBlog until [the rename] is complete.
+ * See [diskuto-sync.sample.toml] for an example configuration.
  * 
- * [Diskuto]: https://example.com/TODO
- * [FeoBlog]: https://github.com/nfnitloop/feoblog/
- * [the rename]: https://github.com/NfNitLoop/feoblog/issues/127
+ * [Diskuto]: https://github.com/diskuto
+ * [diskuto-sync.sample.toml]: ./diskuto-sync.sample.toml
  * 
  * @module
  */
@@ -23,7 +21,7 @@
 import { Command, HelpCommand } from "@cliffy/command"
 import { loadConfig } from "./config.ts";
 import { ConsoleLogger, Sync, type LogCopyItem } from "./lib.ts";
-import { UserID } from "@nfnitloop/feoblog-client";
+import { UserID } from "@diskuto/client";
 import { Spinner } from "@std/cli/unstable-spinner"
 
 export async function main(args: string[]) {

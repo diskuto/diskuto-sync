@@ -1,6 +1,6 @@
 {
     "name": "@diskuto/sync",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "exports": {
         ".": "./src/main.ts",
         "./lib": "./src/lib.ts"
@@ -17,8 +17,8 @@
     },
     "imports": {
         "@cliffy/command": "jsr:@cliffy/command@1.0.0-rc.4",
+        "@diskuto/client": "jsr:@diskuto/client@^0.10.2",
         "@nfnitloop/better-iterators": "jsr:@nfnitloop/better-iterators@^1.5.0",
-        "@nfnitloop/feoblog-client": "jsr:@nfnitloop/feoblog-client@^0.8.0",
         "@std/assert": "jsr:@std/assert@1",
         "@std/cli": "jsr:@std/cli@^1.0.6",
         "@std/toml": "jsr:@std/toml@^1.0.1",
