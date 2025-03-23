@@ -62,10 +62,9 @@ async function cmdSync({config: configPath}: SyncArgs) {
         users: Object.entries(config.users).map(([name, info]) => {
             return {
                 ...info,
-                id: UserID.fromString(info.id),
                 name,
                 sync: {
-                    maxCount: info.maxCount ?? 50,
+                    maxCount: 50, // TODO
                     feed: info.feed?.sync ?? false,
                 }
             }

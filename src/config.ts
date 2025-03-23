@@ -4,13 +4,14 @@
  * @module
  */
 
-import * as z from "zod"
+import { type } from "arktype"
 import * as toml from "@std/toml"
+import * as client from "@diskuto/client";
 
 export async function loadConfig(path: string): Promise<Config> {
     const text = await Deno.readTextFile(path)
     const obj = toml.parse(text)
-    const config = Config.parse(obj)
+    const config = Config.assert(obj)
 
 
     if (Object.entries(config.servers).length < 2) {
@@ -25,33 +26,46 @@ export async function loadConfig(path: string): Promise<Config> {
     return config
 }
 
-export type Server = z.infer<typeof Server>
-const Server = z.object({
-    url: z.string().url().startsWith("http") /* or https */,
-    dest: z.boolean().optional().default(false)
-}).strict()
+export type Server = typeof Server.infer
+const Server = type({
+    url: type("string.url").to(/^https?/),
+    "dest?": "boolean"
+})
 
-export type UserFeed = z.infer<typeof UserFeed>
-const UserFeed = z.object({
-    sync:  z.boolean().optional().default(false),
+export type UserFeed = typeof UserFeed.infer
+const UserFeed = type({
+    /** Sync this user's feed */
+    sync: "boolean = false",
 
     /** Default in app: 50 */
-    maxCount: z.number().int().optional(),
-    // TODO: maxAgeSeconds: z.number().optional(),
-}).strict()
+    "maxCount?": "number.integer",
+})
 
-export type User = z.infer<typeof User>
-const User = z.object({
-    id: z.string().min(1).describe("base58-encoded userID to sync"),
-    maxCount: z.number().int().optional(),
-    feed: UserFeed.optional(),
-}).strict()
+// TODO: Separate sync strategies.
+
+/** Work around arktype's type expander. It stops at constructors. */
+type NamedType<T> = T & {
+    new(): T
+}
+
+// .try(UserID.fromString).describe("a valid Diskuto UserID")
+type UserId = typeof UserId.infer
+const UserId = type("string")
+    .describe("a valid UserID")
+    .pipe.try(value => client.UserID.fromString(value))
+    .as<NamedType<client.UserID>>()
+
+export type User = typeof User.infer
+const User = type({
+    id: UserId,
+    // normalize with feed settings.
+    "maxCout?": "number.integer",
+    "feed?": UserFeed,
+})
 
 
-export type Config = z.infer<typeof Config>
-const Config = z.object({
-    servers: z.record(Server),
-    users: z.record(User),
-    backfillFiles: z.boolean().optional().default(false),
-    copyFiles: z.boolean().optional().default(true),
-}).strict()
+export type Config = typeof Config.infer
+const Config = type({
+    servers: type.Record("string", Server),
+    users: type.Record("string", User),
+}).onUndeclaredKey("reject")

@@ -355,14 +355,14 @@ export type SyncConfig = {
      */
     copyFiles?: boolean
 
-    /**
-     * Check destination server(s) to see if they are missing file attachments.
-     *
-     * This is more costly and generally unnecessary.
-     * 
-     * Default: `false`
-     */
-    backfillFiles?: boolean
+    // /**
+    //  * Check destination server(s) to see if they are missing file attachments.
+    //  *
+    //  * This is more costly and generally unnecessary.
+    //  * 
+    //  * Default: `false`
+    //  */
+    // backfillFiles?: boolean
 
     /** Configure how to log progress. */
     logger: Logger

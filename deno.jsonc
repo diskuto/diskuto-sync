@@ -27,7 +27,7 @@
         "@std/assert": "jsr:@std/assert@1",
         "@std/cli": "jsr:@std/cli@^1.0.6",
         "@std/toml": "jsr:@std/toml@^1.0.1",
-        "zod": "npm:zod@^3.23.8"
+        "arktype": "npm:arktype@^2.1.15",
     },
     "lint": {
         "plugins": [
