@@ -7,10 +7,14 @@
     },
     "tasks": {
         "sync": "./src/main.ts sync",
-        "test": "deno task check",
-        "check": "deno task check:types && deno task check:publish",
+        "test": { "dependencies": ["check"] },
+        "check": { "dependencies": ["check:types", "check:publish", "lint"] },
         "check:types": "deno check src/main.ts src/lib.ts",
-        "check:publish": "deno publish --dry-run --allow-dirty"
+        "check:publish": {
+            "command": "deno publish --dry-run --allow-dirty",
+            "dependencies": ["check:types"]
+        },
+        "lint": "deno lint"
     },
     "fmt": {
         "indentWidth": 4

@@ -5,8 +5,7 @@ import { loadConfig } from "./config.ts";
 import { Sync } from "./lib.ts";
 import { UserID } from "@diskuto/client";
 import { FancyLogger } from "./fancyLogger.ts";
-import { ServerInfo } from "./logging.ts";
-import { ConsoleLogger } from "./loggers.ts";
+import type { ServerInfo } from "./logging.ts";
 
 /**
  * 
