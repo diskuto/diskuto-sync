@@ -63,10 +63,6 @@ async function cmdSync({config: configPath}: SyncArgs) {
             return {
                 ...info,
                 name,
-                sync: {
-                    maxCount: 50, // TODO
-                    feed: info.feed?.sync ?? false,
-                }
             }
         })
     })

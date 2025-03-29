@@ -15,16 +15,22 @@ url = "https://blog.nfnitloop.com"
 [users.cody]
 id = "42P3FTZoCmN8DRmLSu89y419XfYfHP9Py7a9vNLfD72F"
 
-# Max items to sync from this account:
-# Default: 50
-maxCount = 50
+# Should we sync all users this user follows? (default: false)
+sync.follows = true
 
-# Marks that we should also sync this user's feed.
-# (i.e.: all the users they follow)
-feed.sync = true
+# "latest" is the simplest sync mode -- just syncs the most recent $count items between servers.
+sync.mode = "latest" # default
+sync.count = 50 # default
 
-# Optional: How many items from each followed user should we sync, max?
-# After we have the $n most-recent updates from that user, we'll move on to the next.
-# Default: 50
-# A setting <= 0 means there should be no limit.
-# feed.maxCount = 50
+
+[users.exampleFullSync]
+id = "..."
+
+sync.follows = true
+
+# "Full" sync mode walks the entire history of all servers and synchronizes between them.
+# !!! Use sparingly. It can be slow, and uses many more resources than an incremental sync.
+sync.mode = "full"
+
+# Checks for any file attachments that might be missing on either side of the sync.
+sync.backfillAttachments = false

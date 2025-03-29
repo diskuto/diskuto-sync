@@ -10,6 +10,7 @@
 import { Client, Signature, UserID, type ProfileResult } from "@diskuto/client"
 import { lazy } from "@nfnitloop/better-iterators"
 import type { Logger, ServerInfo, UserInfo } from "./logging.ts";
+import type { SyncMode } from "./config.ts";
 
 
 /**
@@ -61,11 +62,11 @@ export class Sync {
                     id: user.id,
                     displayName: result.item.itemType.value.displayName,
                 },
-                maxCount: user.sync.maxCount
+                sync: user.sync
             })
 
             // Sync followed users too:
-            if (user.sync.feed) {
+            if (user.sync.follows) {
                 const profile = result.item.itemType.value
                 for (const follow of profile.follows) {
                     addUser({
@@ -74,7 +75,7 @@ export class Sync {
                             knownName: follow.displayName,
                         },
                         // TODO: separate count for feeds?
-                        maxCount: user.sync.maxCount
+                        sync: user.sync
                     })
                 }
             }
@@ -125,10 +126,12 @@ export class Sync {
 
     async #syncUser(opts: SyncUserOptions): Promise<void> {
         const {user} = opts
-        const maxToSync = opts.maxCount
         let alreadySyncd = 0
         const moreToSync = () => {
-            return maxToSync <= 0 || alreadySyncd < maxToSync
+            if (opts.sync.mode == "full") {
+                return true
+            }
+            return alreadySyncd < opts.sync.count
         }
 
         const peekers = this.config.servers.map(s => {
@@ -278,16 +281,7 @@ export type SyncUserOptions = {
         /** How this user is known by some other user. (Usually the feed that caused this user's content to be sync'd.) */
         knownName?: string
     }
-
-    // TODO: More generic sync algorithm selection:
-    /**
-     * Maximum number of items to sync from each user.
-     * 
-     * If unspecified, and no other limits are specified, defaults to 50.
-     * 
-     * Specifying a number <= 0 means there is no limit.
-     */
-    maxCount: number
+    sync: SyncMode
 }
 
 /**
@@ -301,24 +295,7 @@ export type SyncUserOpts = {
     /** The name of the user in the config file. */
     name: string
     id: UserID
-    sync: {
-        /** 
-         * Whether to sync this user's feed. (users they follow)
-         * 
-         * Default: false
-         */
-        feed?: boolean
-
-        /**
-         * Whether to sync this user's own items.
-         * 
-         * Default: true
-         */
-        ownItems?: boolean
-
-        // TODO: More generic sync methods.
-        maxCount: number
-    }
+    sync: SyncMode
 }
 
 function choose<T>(items: T[]): T {

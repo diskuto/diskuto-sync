@@ -26,30 +26,26 @@ export async function loadConfig(path: string): Promise<Config> {
     return config
 }
 
-export type Server = typeof Server.infer
-const Server = type({
-    url: type("string.url").to(/^https?/),
-    "dest?": "boolean"
+const SyncBase = type({
+    follows: "boolean = false"
 })
 
-export type UserFeed = typeof UserFeed.infer
-const UserFeed = type({
-    /** Sync this user's feed */
-    sync: "boolean = false",
+const SyncLatest = type({
+    mode: `"latest"`,
+    count: "number.integer > 0 = 50"
+}).and(SyncBase)
 
-    /** Default in app: 50 */
-    "maxCount?": "number.integer",
-})
+const SyncFull = type({
+    mode: `"full"`,
+    backfillAttachments: "boolean = false",
+}).and(SyncBase)
 
-// TODO: Separate sync strategies.
 
-/** Work around arktype's type expander. It stops at constructors. */
-type NamedType<T> = T & {
-    new(): T
-}
+export type SyncMode = typeof SyncMode.infer
+const SyncMode = SyncLatest
+    .or(SyncFull)
 
 // .try(UserID.fromString).describe("a valid Diskuto UserID")
-type UserId = typeof UserId.infer
 const UserId = type("string")
     .describe("a valid UserID")
     .pipe.try(value => client.UserID.fromString(value))
@@ -58,9 +54,13 @@ const UserId = type("string")
 export type User = typeof User.infer
 const User = type({
     id: UserId,
-    // normalize with feed settings.
-    "maxCout?": "number.integer",
-    "feed?": UserFeed,
+    sync: SyncMode.default(() => ({mode: "latest", count: 50})),
+})
+
+export type Server = typeof Server.infer
+const Server = type({
+    url: type("string.url").to(/^https?/),
+    "dest?": "boolean"
 })
 
 
@@ -68,4 +68,9 @@ export type Config = typeof Config.infer
 const Config = type({
     servers: type.Record("string", Server),
     users: type.Record("string", User),
-}).onUndeclaredKey("reject")
+}).onDeepUndeclaredKey("reject")
+
+/** Work around arktype's type expander. It stops at constructors. */
+type NamedType<T> = T & {
+    new(): T
+}
