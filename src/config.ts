@@ -7,6 +7,7 @@
 import { type } from "arktype"
 import * as toml from "@std/toml"
 import * as client from "@diskuto/client";
+import { assertSameShape } from "./typeUtils.ts";
 
 export async function loadConfig(path: string): Promise<Config> {
     const text = await Deno.readTextFile(path)
@@ -41,9 +42,22 @@ const SyncFull = type({
 }).and(SyncBase)
 
 
-export type SyncMode = typeof SyncMode.infer
-const SyncMode = SyncLatest
+// Must use different name. 😢 https://github.com/denoland/deno/issues/23396
+const SyncModeSchema = SyncLatest
     .or(SyncFull)
+
+
+// Have to define this type, to satisfy Deno/JSR's "No slow types" rule:
+assertSameShape<SyncMode, typeof SyncModeSchema.infer>(true)
+export type SyncMode = {
+    follows: boolean
+} & ({
+    mode: "latest",
+    count: number
+} | {
+    mode: "full",
+    backfillAttachments: boolean
+})
 
 // .try(UserID.fromString).describe("a valid Diskuto UserID")
 const UserId = type("string")
@@ -54,7 +68,7 @@ const UserId = type("string")
 export type User = typeof User.infer
 const User = type({
     id: UserId,
-    sync: SyncMode.default(() => ({mode: "latest", count: 50})),
+    sync: SyncModeSchema.default(() => ({mode: "latest", count: 50})),
 })
 
 export type Server = typeof Server.infer
