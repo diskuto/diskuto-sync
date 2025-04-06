@@ -20,7 +20,8 @@ export class FancyLogger implements Logger {
             ? event.totalBytes
             : undefined
         )
-        const prog = $.progress(msg, {length}).kind("bytes")
+        const noClear = false // TODO: Configurable log levels.
+        const prog = $.progress(msg, {length, noClear}).kind("bytes")
 
         return {
             end: end => logEnd(end, event, prog),

@@ -3,7 +3,6 @@
 import { Command, HelpCommand } from "@cliffy/command"
 import { loadConfig } from "./config.ts";
 import { Sync } from "./lib.ts";
-import { UserID } from "@diskuto/client";
 import { FancyLogger } from "./fancyLogger.ts";
 import type { ServerInfo } from "./logging.ts";
 

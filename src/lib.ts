@@ -11,6 +11,8 @@ import { Client, Signature, UserID, type ProfileResult } from "@diskuto/client"
 import { lazy } from "@nfnitloop/better-iterators"
 import type { Logger, ServerInfo, UserInfo } from "./logging.ts";
 import type { SyncMode } from "./config.ts";
+import { itemListEntry, itemListEntryDesc } from "./sort.ts";
+import type { ItemListEntry } from "@diskuto/client/types";
 
 
 /**
@@ -50,7 +52,7 @@ export class Sync {
             old.user.knownName ||= info.user.knownName
         }
 
-        // TODO: parallelize. (Usually very few top-level users, though.)
+        // TODO: parallelize? (Usually very few top-level users, though.)
         for (const user of opts.users) {
             const result = await this.#syncLatestProfile(user.id)
             if (!result) {
@@ -85,7 +87,7 @@ export class Sync {
     }
 
     async #syncUsers(users: Iterable<SyncUserOptions>): Promise<void> {
-        // Configurable:
+        // TODO: Configurable:
         const parallelism = 5
 
         const tasks = lazy(users).toAsync()
@@ -145,6 +147,7 @@ export class Sync {
         while (moreToSync()) {
             const tips = await lazy(peekers)
                 .toAsync()
+                // TODO: parallel
                 .map(async p => {
                     const nextValue = await p.peeker.peek()
                     return {server: p.server, nextValue, peeker: p.peeker}
@@ -154,18 +157,19 @@ export class Sync {
             // All servers should be giving us their newest items first.
             // Find all servers that have that "newest" item. Any that don't are missing it, by
             // showing us something older at their tip.
-            const timestamps = tips
-                .map(t => t.nextValue)
-                .filter(t => !t.done)
-                .map(t => Number(t.value.timestampMsUtc))
-            if (timestamps.length == 0) {
+
+            const notDoneTips = tips.filter(notDonePeeker)
+            if (notDoneTips.length == 0) {
                 // All servers have finished giving us items.
                 break
             }
 
-            const tip = Math.max(...timestamps)
+            notDoneTips.sort((a, b) => itemListEntryDesc(a.nextValue.value, b.nextValue.value))
+            const tip = notDoneTips[0]
+            const eqTip = (e: ItemListEntry) => itemListEntry(e, tip.nextValue.value) == 0
+            
             const {matches, others} = lazy(tips)
-                .partition(t => !t.nextValue.done && Number(t.nextValue.value.timestampMsUtc) == tip)
+                .partition(t => !t.nextValue.done && eqTip(t.nextValue.value))
 
             const nextValue = matches[0].nextValue
             if (nextValue.done) {
@@ -174,7 +178,7 @@ export class Sync {
             }
             const signature = Signature.fromBytes(nextValue.value.signature!.bytes)
 
-            // Matching servers all alrady have the content. Copy it to the other servers, 
+            // Matching servers all already have the content. Copy it to the other servers, 
             // IFF they're marked as a destination.
             await this.#copyItem({
                 user,
@@ -345,3 +349,24 @@ export type SyncConfig = {
     logger: Logger
 }
 
+function peekableTypeGetter<T>(value: AsyncIterable<T>) {
+    return lazy(value).peekable()
+}
+
+// D'oh, I should expose this as a named type from lazy().
+type Peekable<T> = ReturnType<typeof peekableTypeGetter<T>>
+
+/** Intermediate type we use while syncing servers  */
+type ServerPeeker = {
+    server: ServerInfo;
+    nextValue: IteratorResult<ItemListEntry, unknown>;
+    peeker: Peekable<ItemListEntry>; 
+}
+
+function notDonePeeker(peeker: ServerPeeker): peeker is NotDoneServerPeeker {
+    return !peeker.nextValue.done
+}
+
+type NotDoneServerPeeker = ServerPeeker & {
+    nextValue:IteratorYieldResult<ItemListEntry>
+}
