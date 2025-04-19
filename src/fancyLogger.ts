@@ -23,21 +23,13 @@ export class FancyLogger implements Logger {
         const noClear = false // TODO: Configurable log levels.
         const prog = $.progress(msg, {length, noClear}).kind(kind)
 
-        let progressCount = 0
-
         return {
             end: end => logEnd(end, event, prog),
             bytesCopied: bytes => {
                 prog.increment(bytes)
             },
             incrementProgress: () => {
-                if (length) {
-                    prog.increment(1)
-                } else {
-                    progressCount += 1
-                    prog.position(progressCount)
-                    prog.length(Math.pow(10, Math.ceil(Math.log10(progressCount))))                    
-                }
+                prog.increment(1)
             }
         }  
     }
