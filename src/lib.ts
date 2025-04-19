@@ -9,7 +9,7 @@
 
 import { Client, Signature, UserID, type ProfileResult } from "@diskuto/client"
 import { lazy } from "@nfnitloop/better-iterators"
-import type { Logger, ServerInfo, UserInfo } from "./logging.ts";
+import type { LogEventHandler, Logger, ServerInfo, UserInfo } from "./logging.ts";
 import type { SyncMode } from "./config.ts";
 import { itemListEntry, itemListEntryDesc } from "./sort.ts";
 import type { ItemListEntry } from "@diskuto/client/types";
@@ -114,19 +114,20 @@ export class Sync {
                 id: user.id,
                 displayName: user.displayName,
                 knownName: user.knownName,
-            }
+            }, 
+            maxCount: opts.sync.mode == "latest" ? opts.sync.count : undefined,
         })
         try {
-            await this.#syncUser(opts)
+            await this.#syncUser(opts, logEntry)
         } catch (err) {
-            logEntry.end({type: "error", message: `${err}`})
+            logEntry.end?.({type: "error", message: `${err}`})
             return
         }
 
-        logEntry.end({type: "success"})
+        logEntry.end?.({type: "success"})
     }
 
-    async #syncUser(opts: SyncUserOptions): Promise<void> {
+    async #syncUser(opts: SyncUserOptions, logEntry: LogEventHandler): Promise<void> {
         const {user} = opts
         let alreadySyncd = 0
         const moreToSync = () => {
@@ -193,6 +194,7 @@ export class Sync {
             }
 
             alreadySyncd += 1
+            logEntry.incrementProgress?.()
         }
     }
 
@@ -217,12 +219,12 @@ export class Sync {
                 user,
             })
             if (item == null) {
-                entry.end({type: "error", message: "Could not copy item from source"})
+                entry.end?.({type: "error", message: "Could not copy item from source"})
                 return
             }
             const destClient = new Client({baseUrl: dest.url})
             await destClient.putItem(user.id, signature, item)
-            entry.end({type: "success"})
+            entry.end?.({type: "success"})
         }
 
         // TODO: Copy files.

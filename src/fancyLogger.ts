@@ -3,30 +3,41 @@
  */
 
 import $, { type ProgressBar } from "@david/dax"
-import type { LogEnd, LogEntry, LogEvent, Logger } from "./logging.ts";
+import type { LogEnd, LogEventHandler, LogEvent, Logger } from "./logging.ts";
 import { fmtEvent } from "./loggers.ts";
 
 export class FancyLogger implements Logger {
-    start(event: LogEvent): LogEntry {
+    start(event: LogEvent): LogEventHandler {
         if (event.type == "debug") {
             $.logLight(...event.messageParts)
-            return { end: () => {}, bytesCopied: () => {} }
+            return { } 
         }
 
         const msg = fmtEvent(event)
 
-        const length = (
-            event.type == "copyFile"
-            ? event.totalBytes
-            : undefined
+        const {length, kind}: { length?: number, kind: "bytes" | "raw" } = (
+            event.type == "copyFile" ? { length: event.totalBytes, kind: "bytes" }
+            : event.type == "syncUserItems" ? { length: event.maxCount, kind: "raw" }
+            : { length: undefined, kind: "raw" }
         )
         const noClear = false // TODO: Configurable log levels.
-        const prog = $.progress(msg, {length, noClear}).kind("bytes")
+        const prog = $.progress(msg, {length, noClear}).kind(kind)
+
+        let progressCount = 0
 
         return {
             end: end => logEnd(end, event, prog),
             bytesCopied: bytes => {
                 prog.increment(bytes)
+            },
+            incrementProgress: () => {
+                if (length) {
+                    prog.increment(1)
+                } else {
+                    progressCount += 1
+                    prog.position(progressCount)
+                    prog.length(Math.pow(10, Math.ceil(Math.log10(progressCount))))                    
+                }
             }
         }  
     }

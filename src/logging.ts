@@ -22,26 +22,31 @@ export type Logger = {
     /**
      * Called when a new log event starts.
      * 
-     * Must return a {@link LogEntry} so that we can update the progress
+     * Must return a {@link LogEventHandler} so that we can update the progress
      * of the event.
      */
-    readonly start: (event: LogEvent) => LogEntry
+    readonly start: (event: LogEvent) => LogEventHandler
 }
 
 /** Information passed to {@link Logger.start} when a log event starts. */
 export type LogEvent = SyncProfile | SyncFeed | SyncUserItems | CopyItem | CopyFile | DebugInfo
 
 /** Returned by {@link Logger.start} to allow signalling the end of a log event. */
-export type LogEntry = {
+export type LogEventHandler = {
     /**
      * Called when the log event has completed.
      */
-    readonly end: (event: LogEnd) => void
+    readonly end?: (event: LogEnd) => void
 
     /**
      * Called for {@link CopyFile} events to update copy progress.
      */
-    readonly bytesCopied: (chunkBytes: number) => void
+    readonly bytesCopied?: (chunkBytes: number) => void
+
+    /**
+     * Called for {@link SyncUserItems} events to indicate that we have checked (and maybe sync'd) 1 more item.
+     */
+    readonly incrementProgress?: () => void
 }
 
 /**
@@ -72,6 +77,8 @@ export type SyncFeed = {
 export type SyncUserItems = {
     type: "syncUserItems"
     user: UserInfo
+    /** If a max count is specified, it is provided here for progress indicators: */
+    maxCount?: number
 }
 
 /**
@@ -155,7 +162,7 @@ export type UserInfo = {
 
 
 /**
- * Signals to {@link LogEntry.end} how an event ended.
+ * Signals to {@link LogEventHandler.end} how an event ended.
  */
 export type LogEnd = Success | Warning | Error
 

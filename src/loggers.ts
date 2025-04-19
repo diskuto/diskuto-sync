@@ -4,7 +4,7 @@
  * @module
  */
 
-import type { LogEnd, LogEntry, LogEvent, Logger, ServerInfo } from "./logging.ts";
+import type { LogEnd, LogEventHandler, LogEvent, Logger, ServerInfo } from "./logging.ts";
 import * as colors from "jsr:@std/fmt@1.0.6/colors"
 
 /**
@@ -13,7 +13,7 @@ import * as colors from "jsr:@std/fmt@1.0.6/colors"
  * Not recommended because it can swallow errors.
  */
 export class NoOpLogger implements Logger {
-    start(_event: LogEvent): LogEntry {
+    start(_event: LogEvent): LogEventHandler {
         return noOpEvent
     }
 }
@@ -22,7 +22,7 @@ export class NoOpLogger implements Logger {
  * Simple, plain-text console logger.
  */
 export class ConsoleLogger implements Logger {
-    start(event: LogEvent): LogEntry {
+    start(event: LogEvent): LogEventHandler {
         if (event.type == "debug") {
             console.debug(...event.messageParts)
             return noOpEvent
@@ -55,7 +55,7 @@ export class ConsoleLogger implements Logger {
 }
 
 const noOp = () => {}
-const noOpEvent: LogEntry = {
+const noOpEvent: LogEventHandler = {
     end: noOp,
     bytesCopied: noOp,
 }
